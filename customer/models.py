@@ -2,6 +2,27 @@ from django.db import models
 from authentication.models import User, BaseModel
 
 # Create your models here.
+
+
+class Contact(BaseModel):
+    CONTACT_TYPE = {
+        'lead': 'Lead',
+        'customer': 'Customer',
+        'partner': 'Partner'
+    }
+    first_name = models.TextField(max_length=100)
+    last_name = models.TextField(max_length=100)
+    title = models.TextField(max_length=150, null=True)
+    company_name = models.TextField(default='catchall', max_length=100)
+    owner = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+    contact_type = models.CharField(max_length=50, choices=CONTACT_TYPE)
+    email = models.EmailField(unique=True)
+    contact_number = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.first_name + " " + self.last_name
+    
+
 class Company(BaseModel):
     PRIORITY = {
         'low' : 'Low',
@@ -18,7 +39,8 @@ class Company(BaseModel):
 
     name = models.TextField()
     website = models.TextField()
-    contact_name = models.TextField()
+    contact = models.ForeignKey(Contact, null=True, on_delete=models.SET_NULL)
+    owner = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
     revenue = models.IntegerField(null=True)
     priority = models.CharField(max_length=50, choices=PRIORITY)
     industry = models.TextField(max_length=150, null=True)
@@ -29,21 +51,3 @@ class Company(BaseModel):
 
     def __str__(self):
         return self.name
-
-class Contact(BaseModel):
-    CONTACT_TYPE = {
-        'lead': 'Lead',
-        'customer': 'Customer',
-        'partner': 'Partner'
-    }
-    first_name = models.TextField(max_length=100)
-    last_name = models.TextField(max_length=100)
-    title = models.TextField(max_length=150, null=True)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
-    owner = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
-    contact_type = models.CharField(max_length=50, choices=CONTACT_TYPE)
-    email = models.EmailField(unique=True)
-    contact_number = models.CharField(max_length=100, unique=True)
-
-    def __str__(self):
-        return self.first_name + " " + self.last_name

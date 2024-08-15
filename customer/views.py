@@ -30,6 +30,8 @@ def contact_list(request):
     
 
 @api_view(['GET', 'PUT', 'DELETE'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
 def contact_detail(request, uuid):
     try: 
         contact = Contact.objects.get(id=uuid)
@@ -53,3 +55,19 @@ def contact_detail(request, uuid):
     elif request.method == "DELETE":
         contact.delete()
         return HttpResponse(status=204)
+    
+def company_list(request):
+    if request.method == "GET":
+        companies = Company.objects.all()
+        serializer = CompanySerializer(companies, many=True)
+        return Response(serializer.data)
+    
+    elif request.method == "POST":
+        data = request.data
+        serializer = CompanySerializer(data=data)
+        print(request.data)
+        if serializer.is_valid():
+            serializer.save(owner=request.user)
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
+    
