@@ -55,7 +55,11 @@ def contact_detail(request, uuid):
     elif request.method == "DELETE":
         contact.delete()
         return HttpResponse(status=204)
-    
+
+
+@api_view(['POST', 'GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
 def company_list(request):
     if request.method == "GET":
         companies = Company.objects.all()
@@ -70,4 +74,34 @@ def company_list(request):
             serializer.save(owner=request.user)
             return Response(serializer.data, status=201)
         return Response(serializer.errors, status=400)
+
+
+@api_view(['GET', 'PUT', 'DELETE'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def company_detail(request, uuid):
+    try: 
+        company = company.objects.get(id=uuid)
+    except company.DoesNotExist:
+        return HttpResponse(status=404)
+
+    if request.method == "GET":
+        serializer = CompanySerializer(company)
+        return Response(serializer.data)
     
+    elif request.method == "PUT":
+        company.name = request.data.get('name', company.name)
+        company.website = request.data.get('website', company.website)
+        company.revenue = request.data.get('revenue', company.revenue)
+        company.priority = request.data.get('priority', company.priority)
+        company.industry = request.data.get('industry', company.industry)
+        company.country = request.data.get('country', company.country)
+        company.is_active = request.data.get('is_active', company.is_active)
+        company.upsell_opportunity = request.data.get('upsell_opportunity', company.upsell_opportunity)
+        company.sla_agreement = request.data.get('sla_agreement', company.sla_agreement)
+
+        company.save(updated_at=timezone.now())
+    
+    elif request.method == "DELETE":
+        company.delete()
+        return HttpResponse(status=204)
