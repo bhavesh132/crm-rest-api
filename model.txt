@@ -1,0 +1,55 @@
+Contact
+ - Accounts - Company
+   - POC
+   - Position
+   - Industry
+   - Revenue
+   - Priority
+   - Upsell Opportunity
+ - Contact
+
+Sales
+  Opportunity
+   Opportunity Name
+   CompanyName
+   Amount
+   ContactName
+   CampaignName
+   Probability
+   Stage (Open Discussion, Not Started, Closed - Won, Closed - Lost)
+
+  Campaign
+   CampaignName
+   Active : Boolean
+   Type : (Webinar, Conference, Public Relations, Advertisment, Banners)
+   Start Date
+   End Date
+   Cost
+   Expected Revenue
+   Expected Response
+   Leads (ContactName: Foreign Key)
+   Responses (Leads sent Positive Response is True)
+   CampaignOwner
+
+
+Service
+ - Ticket
+ - Note
+ - Type
+ - Subtype
+ - Task
+
+
+Auth
+ - User
+ - Groups
+ - Permissions
+
+
+Groups
+ - System Admin
+ - Service Leads
+ - Sales Leads
+ - Service Agent
+ - Sales Agent
+
