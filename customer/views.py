@@ -1,9 +1,8 @@
 from rest_framework.response import Response
+from rest_framework import status
 from django.http import HttpResponse
 from .models import *
 from .serializer import *
-from django.views.decorators.csrf import csrf_exempt
-from rest_framework.parsers import JSONParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import permission_classes, api_view, authentication_classes
@@ -43,14 +42,11 @@ def contact_detail(request, uuid):
         return Response(serializer.data)
     
     elif request.method == "PUT":
-        contact.first_name = request.data.get('first_name', contact.first_name)
-        contact.last_name = request.data.get('last_name', contact.last_name)
-        contact.title = request.data.get('title', contact.title)
-        contact.contact_type = request.data.get('contact_type', contact.contact_type)
-        contact.email = request.data.get('email', contact.email)
-        contact.contact_number = request.data.get('contact_number', contact.contact_number)
-
-        contact.save(updated_at=timezone.now())
+        serializer = ContactSerializer(contact, data=request.data)
+        if serializer.is_valid():
+            serializer.save(updated_at=timezone.now())
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     elif request.method == "DELETE":
         contact.delete()
@@ -90,17 +86,11 @@ def company_detail(request, uuid):
         return Response(serializer.data)
     
     elif request.method == "PUT":
-        company.name = request.data.get('name', company.name)
-        company.website = request.data.get('website', company.website)
-        company.revenue = request.data.get('revenue', company.revenue)
-        company.priority = request.data.get('priority', company.priority)
-        company.industry = request.data.get('industry', company.industry)
-        company.country = request.data.get('country', company.country)
-        company.is_active = request.data.get('is_active', company.is_active)
-        company.upsell_opportunity = request.data.get('upsell_opportunity', company.upsell_opportunity)
-        company.sla_agreement = request.data.get('sla_agreement', company.sla_agreement)
-
-        company.save(updated_at=timezone.now())
+        serializer = CompanySerializer(company, data=request.data)
+        if serializer.is_valid():
+            serializer.save(updated_at=timezone.now())
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     elif request.method == "DELETE":
         company.delete()
