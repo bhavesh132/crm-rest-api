@@ -62,13 +62,13 @@ class Task(BaseModel):
         'new' : 'New',
         'cancelled': 'Cancelled'
     }
-
+    title = models.CharField(max_length=255)
     subject = models.TextField(max_length=100, choices=SUBJECT)
     status = models.TextField(max_length=50, choices=STATUS)
     due_date = models.DateField(default=timezone.now)
     created_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
-    contact_name = models.ForeignKey(Contact, on_delete=models.CASCADE)
+    contact_name = models.ForeignKey(Contact, null=True, on_delete=models.SET_NULL)
     comments = models.TextField(null=True)
 
     def __str__(self):
-        return self.subject
+        return self.title

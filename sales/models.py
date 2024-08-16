@@ -38,7 +38,7 @@ class Opportunity(models.Model):
     ]
 
     opportunity_name = models.CharField(max_length=255)
-    company_name = models.ForeignKey(Company, max_length=255, on_delete=models.CASCADE)
+    company_name = models.TextField(max_length=255, null=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     contact_name = models.ForeignKey(Contact, on_delete=models.CASCADE)  # Assuming you have a Contact model
     campaign_name = models.ForeignKey(Campaign, on_delete=models.SET_NULL, null=True, blank=True)
