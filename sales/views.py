@@ -50,3 +50,47 @@ def campaign_detail(request, uuid):
             serializer.save(updated_at=timezone.now())
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+@api_view(["GET", "POST"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def opportunity_list(request):
+    """
+    List all Opprotunities in the Database
+    """
+    if request.method == "GET":
+       opportunity = Opportunity.objects.all()
+       serializer = OpportunitySerializer(opportunity, many=True)
+       return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    elif request.method == "POST":
+        serializer = OpportunitySerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(opportunity_owner=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(["GET", "PUT", "DELETE"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def opportunity_detail(request, uuid):
+    try: 
+        opportunity = Opportunity.objects.get(id=uuid)
+    except Opportunity.DoesNotExist:
+        return Response({"message": "No opportunity found"}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == "GET":
+        serializer = OpportunitySerializer(opportunity)
+        return Response(serializer.data)
+    
+    elif request.method == "DELETE":
+        opportunity.delete()
+        return Response({"message": "opportunity removed successfully"}, status=status.HTTP_200_OK)
+    
+    elif request.method == "PUT":
+        serializer = OpportunitySerializer(opportunity, data=request.data)
+        if serializer.is_valid():
+            serializer.save(updated_at=timezone.now())
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

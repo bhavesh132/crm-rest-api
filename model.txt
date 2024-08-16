@@ -1,43 +1,17 @@
 Contact
- - Accounts - Company
-   - POC
-   - Position
-   - Industry
-   - Revenue
-   - Priority
-   - Upsell Opportunity
- - Contact
+ Contact
+ Company
 
 Sales
   Opportunity
-   Opportunity Name
-   CompanyName
-   Amount
-   ContactName
-   CampaignName
-   Probability
-   Stage (Open Discussion, Not Started, Closed - Won, Closed - Lost)
-
   Campaign
-   CampaignName
-   Active : Boolean
-   Type : (Webinar, Conference, Public Relations, Advertisment, Banners)
-   Start Date
-   End Date
-   Cost
-   Expected Revenue
-   Expected Response
-   Leads (ContactName: Foreign Key)
-   Responses (Leads sent Positive Response is True)
-   CampaignOwner
-
 
 Service
- - Ticket
- - Note
- - Type
- - Subtype
- - Task
+  Ticket
+  Note
+  Type
+  Subtype
+  Task
 
 
 Auth
@@ -53,3 +27,7 @@ Groups
  - Service Agent
  - Sales Agent
 
+
+
+Add an ID Field for Ticket, Note, Type, SubType, Campaign
+for the ease of search
