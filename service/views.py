@@ -71,6 +71,28 @@ def ticket_list(request):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+@api_view(["GET", "POST"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def my_tickets(request):
+    """All tickets assigned to user logged in"""
+    if request.method == "GET":
+        ticket = Ticket.objects.filter(owner_id=request.user)
+        serializer = TicketSerializer(ticket, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(["GET", "POST"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def my_tasks(request):
+    """All tickets assigned to user logged in"""
+    if request.method == "GET":
+        task = Task.objects.filter(owner_id=request.user)
+        serializer = TaskSerializer(task, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_404_NOT_FOUND)
+
 @api_view(["GET", "PUT", "DELETE"])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
