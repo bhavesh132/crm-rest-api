@@ -71,7 +71,7 @@ def ticket_list(request):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(["GET", "POST"])
+@api_view(["GET"])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def my_tickets(request):
@@ -82,7 +82,7 @@ def my_tickets(request):
         return Response(serializer.data, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_404_NOT_FOUND)
 
-@api_view(["GET", "POST"])
+@api_view(["GET"])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def my_tasks(request):
