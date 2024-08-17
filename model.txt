@@ -15,9 +15,9 @@ Service
 
 
 Auth
- - User
- - Groups
- - Permissions
+ User
+ Groups
+ Permissions
 
 
 Groups

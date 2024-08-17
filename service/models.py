@@ -28,11 +28,19 @@ class Ticket(BaseModel):
         "cancelled": "Cancelled"
     }
 
+    PRIORITY = {
+        "p1": "P1",
+        "p2": "P2",
+        "p3": "P3",
+        "p4": "P4",
+    }
+
     title = models.CharField(max_length=150)
     ticket_type = models.ForeignKey(Type, null=True, on_delete=models.SET_NULL)
     ticket_subtype = models.ForeignKey(SubType, null=True, on_delete=models.SET_NULL)
     description = models.TextField()
     status = models.CharField(max_length=50, choices=TICKET_STATUS)
+    priority = models.TextField(max_length=20, default="p2", choices=PRIORITY)
     customer_id = models.ForeignKey(Contact, null=True, on_delete=models.SET_NULL)
     owner_id = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
 
