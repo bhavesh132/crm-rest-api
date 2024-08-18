@@ -94,8 +94,10 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES' : [
         'rest_framework.authentication.TokenAuthentication',
     ],
-    # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    # 'PAGE_SIZE': 100,  # Set the default number of items per page
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,  # Set the default number of items per page
+    'PAGE_SIZE_QUERY_PARAM': 'page_size',  # Allow clients to set page size with this query parameter
+    'MAX_PAGE_SIZE': 200,  # Set a maximum page size
 }
 
 

@@ -12,6 +12,7 @@ class Contact(BaseModel):
     }
     first_name = models.TextField(max_length=100)
     last_name = models.TextField(max_length=100)
+    full_name = models.CharField(max_length=100, editable=False)
     title = models.TextField(max_length=150, null=True)
     company_name = models.TextField(default='catchall', max_length=100)
     owner = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
@@ -22,6 +23,9 @@ class Contact(BaseModel):
     def __str__(self):
         return self.first_name + " " + self.last_name
     
+    def save(self, *args, **kwargs):
+        self.full_name = f"{self.first_name} {self.last_name}"
+        super(Contact, self).save(*args, **kwargs)
 
 class Company(BaseModel):
     PRIORITY = {

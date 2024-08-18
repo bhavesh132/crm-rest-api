@@ -7,6 +7,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import permission_classes, api_view, authentication_classes
 from django.utils import timezone
+from authentication.ApiFeatures import GlobalPagination, filter_and_order
+
 
 # Create your views here.
 @api_view(['POST', 'GET'])
@@ -14,8 +16,11 @@ from django.utils import timezone
 @permission_classes([IsAuthenticated])
 def contact_list(request):
     if request.method == "GET":
-        contacts = Contact.objects.all()
-        serializer = ContactSerializer(contacts, many=True)
+        queryset = Contact.objects.all()
+        contacts = filter_and_order(queryset, request)
+        paginator = GlobalPagination()
+        paginated_queryset = paginator.paginate_queryset(contacts, request)
+        serializer = ContactSerializer(paginated_queryset, many=True)
         return Response(serializer.data)
     
     elif request.method == "POST":
@@ -58,7 +63,8 @@ def contact_detail(request, uuid):
 @permission_classes([IsAuthenticated])
 def company_list(request):
     if request.method == "GET":
-        companies = Company.objects.all()
+        queryset = Contact.objects.all()
+        companies = filter_and_order(queryset, request)
         serializer = CompanySerializer(companies, many=True)
         return Response(serializer.data)
     
