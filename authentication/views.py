@@ -52,6 +52,8 @@ def user_login(request):
 
         if user:
             token, created = Token.objects.get_or_create(user=user)
+            user.last_login = timezone.now()
+            user.save()
             serializer = UserSerializer(instance=user)
             max_age = 60 * 60 * 24  # 1 day in seconds
             expires = (timezone.now() + timedelta(seconds=max_age))
