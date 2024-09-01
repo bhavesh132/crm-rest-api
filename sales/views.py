@@ -6,6 +6,7 @@ from .serializer import *
 from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
+from authentication.ApiFeatures import GlobalPagination, filter_and_order
 
 # Create your views here.
 @api_view(["GET", "POST"])
@@ -16,14 +17,17 @@ def campaign_list(request):
     List all Campaigns in the Database
     """
     if request.method == "GET":
-       campaign = Campaign.objects.all()
-       serializer = CampaignSerializer(campaign, many=True)
-       return Response(serializer.data, status=status.HTTP_200_OK)
+        queryset = Campaign.objects.all()
+        campaigns = filter_and_order(queryset, request)
+        paginator = GlobalPagination()
+        paginated_queryset = paginator.paginate_queryset(campaigns, request)
+        serializer = CampaignSerializer(paginated_queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     
     elif request.method == "POST":
         serializer = CampaignSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(campaign_owner=request.user)
+            serializer.save(owner=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -47,7 +51,7 @@ def campaign_detail(request, uuid):
     elif request.method == "PUT":
         serializer = CampaignSerializer(campaign, data=request.data)
         if serializer.is_valid():
-            serializer.save(updated_at=timezone.now())
+            serializer.save(updated_at=timezone.now(), modified_by=request.user)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
@@ -60,14 +64,17 @@ def opportunity_list(request):
     List all Opprotunities in the Database
     """
     if request.method == "GET":
-       opportunity = Opportunity.objects.all()
-       serializer = OpportunitySerializer(opportunity, many=True)
-       return Response(serializer.data, status=status.HTTP_200_OK)
+        queryset = Opportunity.objects.all()
+        opportunities = filter_and_order(queryset, request)
+        paginator = GlobalPagination()
+        paginated_queryset = paginator.paginate_queryset(opportunities, request)
+        serializer = OpportunitySerializer(paginated_queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     
     elif request.method == "POST":
         serializer = OpportunitySerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(opportunity_owner=request.user)
+            serializer.save(owner=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -91,6 +98,6 @@ def opportunity_detail(request, uuid):
     elif request.method == "PUT":
         serializer = OpportunitySerializer(opportunity, data=request.data)
         if serializer.is_valid():
-            serializer.save(updated_at=timezone.now())
+            serializer.save(updated_at=timezone.now(), modified_by=request.user)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -49,7 +49,7 @@ def contact_detail(request, uuid):
     elif request.method == "PUT":
         serializer = ContactSerializer(contact, data=request.data)
         if serializer.is_valid():
-            serializer.save(updated_at=timezone.now())
+            serializer.save(updated_at=timezone.now(), modified_by=request.user)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
@@ -65,7 +65,9 @@ def company_list(request):
     if request.method == "GET":
         queryset = Contact.objects.all()
         companies = filter_and_order(queryset, request)
-        serializer = CompanySerializer(companies, many=True)
+        paginator = GlobalPagination()
+        paginated_queryset = paginator.paginate_queryset(companies, request)
+        serializer = CompanySerializer(paginated_queryset, many=True)
         return Response(serializer.data)
     
     elif request.method == "POST":
@@ -94,7 +96,7 @@ def company_detail(request, uuid):
     elif request.method == "PUT":
         serializer = CompanySerializer(company, data=request.data)
         if serializer.is_valid():
-            serializer.save(updated_at=timezone.now())
+            serializer.save(updated_at=timezone.now(), modified_by=request.user)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     

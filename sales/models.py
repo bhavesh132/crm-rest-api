@@ -23,7 +23,6 @@ class Campaign(BaseModel):
     expected_response = models.IntegerField()
     leads = models.ManyToManyField(Contact, related_name='campaigns')
     responses = models.ManyToManyField(Contact, related_name='responses', blank=True)
-    campaign_owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return self.campaign_name

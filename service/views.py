@@ -6,6 +6,7 @@ from .serializer import *
 from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
+from authentication.ApiFeatures import GlobalPagination, filter_and_order
 
 # Create your views here.
 @api_view(["GET", "POST"])
@@ -16,9 +17,12 @@ def task_list(request):
     List all Tasks in the Database
     """
     if request.method == "GET":
-       task = Task.objects.all()
-       serializer = TaskSerializer(task, many=True)
-       return Response(serializer.data, status=status.HTTP_200_OK)
+        queryset = Task.objects.all()
+        tasks = filter_and_order(queryset, request)
+        paginator = GlobalPagination()
+        paginated_queryset = paginator.paginate_queryset(tasks, request)
+        serializer = TaskSerializer(paginated_queryset, many=True)
+        return Response(serializer.data)
     
     elif request.method == "POST":
         serializer = TaskSerializer(data=request.data)
@@ -47,7 +51,7 @@ def task_detail(request, uuid):
     elif request.method == "PUT":
         serializer = TaskSerializer(task, data=request.data)
         if serializer.is_valid():
-            serializer.save(updated_at=timezone.now())
+            serializer.save(updated_at=timezone.now(), modified_by=request.user)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
@@ -60,14 +64,17 @@ def ticket_list(request):
     List all Tickets in the Database
     """
     if request.method == "GET":
-       ticket = Ticket.objects.all()
-       serializer = TicketSerializer(ticket, many=True)
-       return Response(serializer.data, status=status.HTTP_200_OK)
+        queryset = Ticket.objects.all()
+        tickets = filter_and_order(queryset, request)
+        paginator = GlobalPagination()
+        paginated_queryset = paginator.paginate_queryset(tickets, request)
+        serializer = TicketSerializer(paginated_queryset, many=True)
+        return Response(serializer.data)
     
     elif request.method == "POST":
         serializer = TicketSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(owner_id=request.user)
+            serializer.save(created_by=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -77,8 +84,11 @@ def ticket_list(request):
 def my_tickets(request):
     """All tickets assigned to user logged in"""
     if request.method == "GET":
-        ticket = Ticket.objects.filter(owner_id=request.user)
-        serializer = TicketSerializer(ticket, many=True)
+        queryset = Ticket.objects.filter(owner=request.user)
+        tickets = filter_and_order(queryset)
+        paginator = GlobalPagination()
+        paginated_query = paginator.paginate_queryset(tickets,request)
+        serializer = TicketSerializer(paginated_query, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_404_NOT_FOUND)
 
@@ -88,8 +98,11 @@ def my_tickets(request):
 def my_tasks(request):
     """All tickets assigned to user logged in"""
     if request.method == "GET":
-        task = Task.objects.filter(owner_id=request.user)
-        serializer = TaskSerializer(task, many=True)
+        queryset = Task.objects.filter(owner=request.user)
+        tasks = filter_and_order(queryset=queryset)
+        paginator = GlobalPagination()
+        paginated_query = paginator.paginate_queryset(tasks, request)
+        serializer = TaskSerializer(paginated_query, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_404_NOT_FOUND)
 
@@ -113,7 +126,7 @@ def ticket_detail(request, uuid):
     elif request.method == "PUT":
         serializer = TicketSerializer(ticket, data=request.data)
         if serializer.is_valid():
-            serializer.save(updated_at=timezone.now())
+            serializer.save(updated_at=timezone.now(), modified_by=request.user)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
@@ -126,14 +139,17 @@ def note_list(request):
     List all Notes in the Database
     """
     if request.method == "GET":
-       note = Note.objects.all()
-       serializer = NoteSerializer(note, many=True)
-       return Response(serializer.data, status=status.HTTP_200_OK)
+        queryset = Note.objects.filter(owner=request.user)
+        notes = filter_and_order(queryset=queryset)
+        paginator = GlobalPagination()
+        paginated_query = paginator.paginate_queryset(notes, request)
+        serializer = NoteSerializer(paginated_query, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     
     elif request.method == "POST":
         serializer = NoteSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(created_by=request.user)
+            serializer.save(owner=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -157,7 +173,7 @@ def note_detail(request, uuid):
     elif request.method == "PUT":
         serializer = NoteSerializer(note, data=request.data)
         if serializer.is_valid():
-            serializer.save(updated_at=timezone.now())
+            serializer.save(updated_at=timezone.now(), modified_by=request.user)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
@@ -169,14 +185,17 @@ def type_list(request):
     List all Types in the Database
     """
     if request.method == "GET":
-       case = Type.objects.all()
-       serializer = TypeSerializer(case, many=True)
-       return Response(serializer.data, status=status.HTTP_200_OK)
+        queryset = Type.objects.filter(owner=request.user)
+        types = filter_and_order(queryset=queryset)
+        paginator = GlobalPagination()
+        paginated_query = paginator.paginate_queryset(types, request)
+        serializer = TypeSerializer(paginated_query, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     
     elif request.method == "POST":
         serializer = TypeSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(owner=request.data)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -200,7 +219,7 @@ def type_detail(request, uuid):
     elif request.method == "PUT":
         serializer = TypeSerializer(case, data=request.data)
         if serializer.is_valid():
-            serializer.save(updated_at=timezone.now())
+            serializer.save(updated_at=timezone.now(), modified_by=request.user)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -212,14 +231,17 @@ def subtype_list(request):
     List all Opprotunities in the Database
     """
     if request.method == "GET":
-       subtype = SubType.objects.all()
-       serializer = SubTypeSerializer(subtype, many=True)
-       return Response(serializer.data, status=status.HTTP_200_OK)
+        queryset = SubType.objects.filter(owner=request.user)
+        subtypes = filter_and_order(queryset=queryset)
+        paginator = GlobalPagination()
+        paginated_query = paginator.paginate_queryset(subtypes, request)
+        serializer = SubTypeSerializer(paginated_query, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     
     elif request.method == "POST":
         serializer = SubTypeSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(owner=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -243,6 +265,6 @@ def subtype_detail(request, uuid):
     elif request.method == "PUT":
         serializer = SubTypeSerializer(subtype, data=request.data)
         if serializer.is_valid():
-            serializer.save(updated_at=timezone.now())
+            serializer.save(updated_at=timezone.now(), modified_by=request.user)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

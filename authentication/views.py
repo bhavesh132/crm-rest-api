@@ -58,7 +58,7 @@ def user_login(request):
             max_age = 60 * 60 * 24  # 1 day in seconds
             expires = (timezone.now() + timedelta(seconds=max_age))
             response = Response({'token': token.key, 'user':serializer.data}, status=200)
-            response.set_cookie(key='auth_token', value=token.key, expires=expires, httponly=True)
+            response.set_cookie(key='auth_token', value=token.key, expires=expires, httponly=True, path='/', samesite='Lax')
             return response
         return Response({'error': 'Invalid Credentials'}, status=401)
 
