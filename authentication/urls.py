@@ -9,4 +9,5 @@ urlpatterns = [
     path('groups/', GroupCreateView.as_view(), name='group-list-create'),
     path('groups/<int:pk>/', GroupDetailView.as_view(), name='group-detail'),
     path('permissions/', PermissionListView.as_view(), name='permission-list'),
+    path('get_logs/', get_audit_logs, name='get_logs'),
 ]

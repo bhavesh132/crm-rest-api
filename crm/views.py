@@ -23,7 +23,8 @@ def dashboard_summary(request):
         'Standard Tasks': Task.objects.filter(~Q(status__in=["completed", "cancelled"]), priority='p3', owner=user).count(),
         'Scheduled Tasks': Task.objects.filter(~Q(status__in=["completed", "cancelled"]), priority='p4', owner=user).count(),
         # 'Open Tasks': Task.objects.filter(~Q(status__in=["completed", "cancelled"]),owner=user).count(),   
-        'Due Today' : Task.objects.filter(~Q(status__in=["completed", "cancelled"]), owner=user, due_date=timezone.now().date()).count()
+        'Due Today' : Task.objects.filter(~Q(status__in=["completed", "cancelled"]), owner=user, due_date=timezone.now().date()).count(),
+        'Critical Due Today' : Task.objects.filter(~Q(status__in=["completed", "cancelled"]), priority='p1', owner=user, due_date=timezone.now().date()).count()
     }
 
     opportunities_summary = {
@@ -34,12 +35,12 @@ def dashboard_summary(request):
     }
 
     campaigns_summary = {
-        'Active Campaigns': Campaign.objects.filter(active=True, owner=user).count(),
-        'Webinar' : Campaign.objects.filter(type='Webinar', owner=user).count(),
-        'Conference' : Campaign.objects.filter(type='Conference', owner=user).count(),
-        'Public Relations' : Campaign.objects.filter(type='Public Relations', owner=user).count(),
-        'Advertisement' : Campaign.objects.filter(type='Advertisement', owner=user).count(),
-        'Banner' : Campaign.objects.filter(type='Banner', owner=user).count(),
+        # 'Active Campaigns': Campaign.objects.filter(active=True, owner=user).count(),
+        'Webinar' : Campaign.objects.filter(active=True, type='Webinar', owner=user).count(),
+        'Conference' : Campaign.objects.filter(active=True, type='Conference', owner=user).count(),
+        'Public Relations' : Campaign.objects.filter(active=True, type='Public Relations', owner=user).count(),
+        'Advertisement' : Campaign.objects.filter(active=True, type='Advertisement', owner=user).count(),
+        'Banner' : Campaign.objects.filter(active=True, type='Banners', owner=user).count(),
         
     }
 
@@ -60,7 +61,7 @@ def total_data(request):
     total_tickets = Ticket.objects.filter(~Q(status__in=["closed", "completed", "cancelled"]), owner=user).count()
     total_opportunities = Opportunity.objects.filter( stage__in=['Open Discussion', 'Not Started'], owner=user).count()
     total_tasks = Task.objects.filter(~Q(status__in=["completed", "cancelled"]), owner=user).count()
-    total_campaigns = Campaign.objects.filter(owner=user).count()
+    total_campaigns = Campaign.objects.filter(active=True , owner=user).count()
 
     data = {
         'tickets': total_tickets,
