@@ -53,3 +53,9 @@ class Company(BaseModel):
 
     def __str__(self):
         return self.name
+    
+class NewsFeed(BaseModel):
+    title = models.TextField()
+    description = models.TextField()
+    image = models.ImageField()
+    link = models.TextField()

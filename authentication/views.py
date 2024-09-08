@@ -1,19 +1,23 @@
+import json
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.response import Response
 from rest_framework import generics
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated, OR
 from rest_framework.authentication import TokenAuthentication
-from .models import User
+from .models import User, AuditLog
 from .serializer import UserSerializer, GroupSerializer, PermissionSerializer
 from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.admin.models import LogEntry
 from django.contrib.auth import authenticate
 from datetime import timedelta
 from django.utils import timezone
 from django.contrib.auth.models import Group, Permission
 from django.http import HttpResponse
 from .permissions import IsInGroup, CanViewOnlyGroups
-
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
+from .serializer import AuditLogSerializer
 
 # Create your views here.
 @api_view(['POST'])
@@ -44,9 +48,11 @@ def user_login(request):
         user = None
         if '@' in username:
             try: 
-                user = User.objects.get(email=username)
+                email_user = User.objects.get(email=username)
+                if (email_user):
+                    user = authenticate(username=email_user.username, password=password)
             except ObjectDoesNotExist:
-                pass
+                Response({'error': 'Invalid Credentials'}, status=401)
         if not user:
             user = authenticate(username=username, password=password)
 
@@ -58,7 +64,7 @@ def user_login(request):
             max_age = 60 * 60 * 24  # 1 day in seconds
             expires = (timezone.now() + timedelta(seconds=max_age))
             response = Response({'token': token.key, 'user':serializer.data}, status=200)
-            response.set_cookie(key='auth_token', value=token.key, expires=expires, httponly=True, path='/', samesite='Lax')
+            response.set_cookie(key='auth_token', value=token.key, expires=expires, httponly=True, path='/', samesite='lax')
             return response
         return Response({'error': 'Invalid Credentials'}, status=401)
 
@@ -123,3 +129,40 @@ class PermissionListView(generics.ListAPIView):
     authentication_classes = [TokenAuthentication]
     queryset = Permission.objects.all()
     serializer_class = PermissionSerializer
+
+
+@receiver([post_save, post_delete])
+def create_audit_log(sender, instance, **kwargs):
+    # Check if the sender is AuditLog itself
+    if sender in [AuditLog, LogEntry, Token]:
+        print("got an entry in Audit Log")
+        return # Skip logging for the AuditLog model
+
+    serializer = AuditLogSerializer(instance)
+    changes = json.dumps(serializer.data, indent=4)
+    # Retrieve the user who made the change
+    user = None
+    if hasattr(instance, 'modified_by'):
+        user = instance.modified_by
+
+    # Determine the action (created, updated, deleted)
+    if kwargs.get('signal') == post_delete:
+        action = 'Deleted'
+    elif kwargs.get('created', False):
+        action = 'Created'
+    else:
+        action = 'Updated'
+
+    # Create the log entry
+    AuditLog.objects.create(
+        model_name=sender.__name__,
+        action=action,
+        object_id=instance.pk,
+        changes=changes,  # Adjust this to capture meaningful changes
+        timestamp=timezone.now(),
+        user=user
+    )
+
+# Disconnect the signal for the AuditLog model
+post_save.disconnect(create_audit_log, sender=AuditLog)
+post_delete.disconnect(create_audit_log, sender=AuditLog)
