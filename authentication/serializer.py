@@ -35,15 +35,8 @@ class GroupSerializer(serializers.ModelSerializer):
         return instance
     
 class AuditLogSerializer(serializers.ModelSerializer):
-    model_name = serializers.CharField(source='__class__.__name__', read_only=True)
-    action = serializers.SerializerMethodField()
-    object_id = serializers.CharField(source='__class__.__id__', read_only=True)
-
     class Meta:
         model = AuditLog
         fields = '__all__'
 
-    def get_action(self, obj):
-        if self.context.get('action'):
-            return self.context['action']
-        return None
+

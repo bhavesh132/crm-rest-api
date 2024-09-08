@@ -10,4 +10,5 @@ urlpatterns = [
     path('groups/<int:pk>/', GroupDetailView.as_view(), name='group-detail'),
     path('permissions/', PermissionListView.as_view(), name='permission-list'),
     path('get_logs/', get_audit_logs, name='get_logs'),
+    path('instance-detail/<str:app_label>/<str:model_name>/<int:object_id>/', InstanceDetailView.as_view(), name='instance-detail'),
 ]

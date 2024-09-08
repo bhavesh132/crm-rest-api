@@ -1,4 +1,5 @@
 import json
+import decimal
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.response import Response
 from rest_framework import generics
@@ -21,6 +22,10 @@ from .serializer import AuditLogSerializer
 from authentication.ApiFeatures import GlobalPagination, filter_and_order
 from django.forms.models import model_to_dict
 from uuid import UUID
+from django.apps import apps
+from django.http import JsonResponse, Http404
+from django.views import View
+from datetime import datetime, date
 
 
 _old_instances = {}
@@ -146,6 +151,12 @@ def convert_to_serializable(data):
         return [convert_to_serializable(item) for item in data]
     elif isinstance(data, UUID):
         return str(data)  # Convert UUID to string
+    elif isinstance(data, datetime):
+        return data.isoformat()  
+    elif isinstance(data, date):
+        return data.isoformat()  
+    elif isinstance(data, decimal.Decimal):
+        return float(data)  
     return data
 
 
@@ -177,10 +188,15 @@ def create_audit_log(sender, instance, **kwargs):
     if hasattr(instance, 'modified_by'):
         user = instance.modified_by
 
+    if sender == User:
+        request = kwargs.get('request', None)
+        if request and (request.path == 'auth/login/' or request.path == 'auth/logout/'):
+            return
+
     # Determine the action (created, updated, deleted)
     if kwargs.get('signal') == post_delete:
         action = 'Deleted'
-        changes = {}  # No changes captured for deletion
+        changes = model_to_dict(instance)  # No changes captured for deletion
     elif kwargs.get('created', False):
         action = 'Created'
         # Capture all fields on creation
@@ -200,6 +216,8 @@ def create_audit_log(sender, instance, **kwargs):
                 for field, old_value in old_instance_dict.items():
                     new_value = new_instance_dict.get(field)
                     if old_value != new_value:
+                        if field == "last_login":
+                            return
                         changes[field] = {'old': old_value, 'new': new_value}
         
         except sender.DoesNotExist:
@@ -211,11 +229,13 @@ def create_audit_log(sender, instance, **kwargs):
     # Convert changes to JSON serializable format
     serializable_changes = convert_to_serializable(changes)
 
+    app_label = sender._meta.app_label
     # Create a new audit log entry
     AuditLog.objects.create(
         model_name=sender.__name__,
         action=action,
         object_id=instance.pk,
+        app_label=app_label,
         changes=json.dumps(serializable_changes, indent=4),  # Store changes as JSON
         timestamp=timezone.now(),
         user=user  # Log the user making the change
@@ -228,9 +248,24 @@ post_delete.disconnect(create_audit_log, sender=AuditLog)
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def get_audit_logs(request):
-    queryset = AuditLog.objects.all()
+    queryset = AuditLog.objects.all().order_by('-id')
     logs = filter_and_order(queryset, request)
     paginator = GlobalPagination()
     paginated_queryset = paginator.paginate_queryset(logs, request)
     serializer = AuditLogSerializer(paginated_queryset, many=True)
     return Response(serializer.data)
+
+
+class InstanceDetailView(View):
+    def get(self, request, app_label, model_name, object_id):
+        try:
+            # Dynamically get the model class
+            model = apps.get_model(app_label=app_label, model_name=model_name)
+            # Fetch the instance
+            instance = model.objects.get(pk=object_id)
+            # Return instance details as a JSON response
+            return JsonResponse({
+                'data': model_to_dict(instance)
+            })
+        except model.DoesNotExist:
+            raise Http404(f"{model_name} instance with id {object_id} does not exist.")
