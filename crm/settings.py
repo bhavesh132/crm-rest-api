@@ -33,7 +33,7 @@ DEBUG = 'RENDER' not in os.environ
 
 AUTH_USER_MODEL = 'authentication.User'
 
-ALLOWED_HOSTS = ['127.0.0.1:8000', 'https://crm-rest-api.onrender.com', 'http://localhost:5173']
+ALLOWED_HOSTS = ['127.0.0.1', 'https://crm-rest-api.onrender.com', 'http://localhost:5173']
 
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:
@@ -107,7 +107,6 @@ CORS_ALLOW_HEADERS = [
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173',
-    # Add other origins as needed
 ]
 
 
