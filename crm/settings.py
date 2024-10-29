@@ -33,7 +33,7 @@ DEBUG = 'RENDER' not in os.environ
 
 AUTH_USER_MODEL = 'authentication.User'
 
-ALLOWED_HOSTS = ['127.0.0.1']
+ALLOWED_HOSTS = ['127.0.0.1', 'https://crm-rest-api.onrender.com']
 
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:
@@ -116,10 +116,10 @@ APPEND_SLASH=False
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get("PG_DB_NAME", default="CRM"),
-        'USER': os.environ.get("PG_DB_USER", default="postgres"),
-        'PASSWORD': os.environ.get("PG_DB_PW", default="root@123"),
-        'HOST': os.environ.get("PG_DB_HOST", default="localhost"),
+        'NAME': os.environ.get("PGDATABASE", default="CRM"),
+        'USER': os.environ.get("PGUSER", default="postgres"),
+        'PASSWORD': os.environ.get("PGPASSWORD", default="root@123"),
+        'HOST': os.environ.get("PGHOST", default="localhost"),
         'PORT': os.environ.get("PG_DB_PORT", default="5432")
     }
 }
