@@ -2,9 +2,9 @@ from rest_framework.pagination import PageNumberPagination
 from django.db.models import QuerySet, Q
 
 class GlobalPagination(PageNumberPagination):
-    page_size = 10
+    page_size = 50
     page_size_query_param = 'page_size'
-    max_page_size = 100
+    max_page_size = 200
 
 
 def filter_and_order(queryset: QuerySet, request):
@@ -13,8 +13,11 @@ def filter_and_order(queryset: QuerySet, request):
     filter_params = Q()
     for key, value in request.GET.items():
         if key not in excluded_params:
-            # Modify the key to use __iexact or __icontains
-            lookup_key = f"{key}__icontains"  # or use __iexact for exact case-insensitive match
+            if key.endswith('id') or '__' in key:
+                lookup_key = f"{key}"  # Modify for partial case-insensitive matches
+            else:
+                lookup_key = f"{key}__icontains"  # General case for non-foreign fields
+            
             filter_params &= Q(**{lookup_key: value})
 
     # Apply filtering

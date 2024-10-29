@@ -10,6 +10,7 @@ from .models import User, AuditLog
 from .serializer import UserSerializer, GroupSerializer, PermissionSerializer
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.admin.models import LogEntry
+from django.contrib.sessions.models import Session
 from django.contrib.auth import authenticate
 from datetime import timedelta
 from django.utils import timezone
@@ -180,7 +181,7 @@ def capture_old_instance(sender, instance, **kwargs):
 @receiver([post_save, post_delete])
 def create_audit_log(sender, instance, **kwargs):
     # Skip logging for the AuditLog, LogEntry, and Token models
-    if sender in [AuditLog, LogEntry, Token]:
+    if sender in [AuditLog, LogEntry, Token, Session]:
         return
 
     # Get the user (if exists)

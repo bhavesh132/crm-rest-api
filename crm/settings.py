@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
+from re import DEBUG
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -24,17 +25,19 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-c*%o-9w7g0u_q03lfn#4hem1zd7urc6g91%k-t)1$_5c(v76q&'
+SECRET_KEY = os.environ.get('SECRET_KEY', default='django-insecure-c*%o-9w7g0u_q03lfn#4hem1zd7urc6g91%k-t)1$_5c(v76q&')
 
+DEBUG = 'RENDER' not in os.environ
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
 
 AUTH_USER_MODEL = 'authentication.User'
 
 ALLOWED_HOSTS = []
 
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 # Application definition
 
@@ -110,17 +113,14 @@ CORS_ALLOWED_ORIGINS = [
 
 APPEND_SLASH=False
 
-# Database
-# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv("PG_DB_NAME", default=""),
-        'USER': os.getenv("PG_DB_USER", default=""),
-        'PASSWORD': os.getenv("PG_DB_PW", default=""),
-        'HOST': os.getenv("PG_DB_HOST", default=""),
-        'PORT': os.getenv("PG_DB_PORT", default="")
+        'NAME': os.environ.get("PG_DB_NAME", default="CRM"),
+        'USER': os.environ.get("PG_DB_USER", default="postgres"),
+        'PASSWORD': os.environ.get("PG_DB_PW", default="root@123"),
+        'HOST': os.environ.get("PG_DB_HOST", default="localhost"),
+        'PORT': os.environ.get("PG_DB_PORT", default="5432")
     }
 }
 
@@ -129,7 +129,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 10,  # Set the default number of items per page
+    'PAGE_SIZE': 50,  # Set the default number of items per page
     'PAGE_SIZE_QUERY_PARAM': 'page_size',  # Allow clients to set page size with this query parameter
     'MAX_PAGE_SIZE': 200,  # Set a maximum page size
 }

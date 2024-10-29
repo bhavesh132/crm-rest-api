@@ -1,7 +1,10 @@
+from datetime import timedelta
 from django.db import models
 from authentication.models import User, BaseModel
 from customer.models import Contact
 from django.utils import timezone
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 
 # Create your models here.
 class Type(BaseModel):
@@ -51,6 +54,9 @@ class Ticket(BaseModel):
 class Note(BaseModel):
     body = models.TextField()
     ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE)
+    content_type = models.ForeignKey(ContentType, on_delete=models.SET_NULL, null=True, blank=True)
+    object_id = models.PositiveIntegerField(null=True, blank=True)
+    related_object = GenericForeignKey('content_type', 'object_id')
 
 
     def __str__(self):
@@ -61,7 +67,8 @@ class Task(BaseModel):
     SUBJECT = {
         'email' : 'Email',
         'call' : 'Call',
-        'other' : 'Other'
+        'other' : 'Other',
+        'reminder' : 'Reminder'
     }
 
     STATUS = {
@@ -70,7 +77,7 @@ class Task(BaseModel):
         'new' : 'New',
         'cancelled': 'Cancelled'
     }
-    
+
     PRIORITY = {
         "p1": "P1",
         "p2": "P2",
@@ -81,8 +88,14 @@ class Task(BaseModel):
     subject = models.TextField(max_length=100, choices=SUBJECT)
     status = models.TextField(max_length=50, choices=STATUS)
     priority = models.TextField(max_length=20, default="p2", choices=PRIORITY)
-    due_date = models.DateField(default=timezone.now)
+    start_date = models.DateTimeField(default=timezone.now)
+    due_date = models.DateTimeField(default=timezone.now)
     contact_name = models.ForeignKey(Contact, null=True, on_delete=models.SET_NULL)
+
+    content_type = models.ForeignKey(ContentType, on_delete=models.SET_NULL, null=True, blank=True)
+    object_id = models.PositiveIntegerField(null=True, blank=True)
+    related_object = GenericForeignKey('content_type', 'object_id')
+
     comments = models.TextField(null=True)
 
     def __str__(self):

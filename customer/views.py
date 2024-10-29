@@ -10,6 +10,7 @@ from django.utils import timezone
 from authentication.ApiFeatures import GlobalPagination, filter_and_order
 
 
+
 # Create your views here.
 @api_view(['POST', 'GET'])
 @authentication_classes([TokenAuthentication])
@@ -18,10 +19,14 @@ def contact_list(request):
     if request.method == "GET":
         queryset = Contact.objects.all()
         contacts = filter_and_order(queryset, request)
+        total_count = contacts.count()
         paginator = GlobalPagination()
         paginated_queryset = paginator.paginate_queryset(contacts, request)
         serializer = ContactSerializer(paginated_queryset, many=True)
-        return Response(serializer.data)
+        return Response({
+            'data': serializer.data,
+            'total_count': total_count
+            })
     
     elif request.method == "POST":
         data = request.data
