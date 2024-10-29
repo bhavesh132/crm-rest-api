@@ -33,7 +33,13 @@ DEBUG = 'RENDER' not in os.environ
 
 AUTH_USER_MODEL = 'authentication.User'
 
-ALLOWED_HOSTS = ['127.0.0.1', 'https://crm-rest-api.onrender.com', 'http://localhost:5173']
+ALLOWED_HOSTS = ['127.0.0.1', 
+                 'https://crm-rest-api.onrender.com', 
+                 'http://localhost:5173',
+                 'https://crm-client-eight.vercel.app',
+                 'https://crm-client-git-main-bhavesh132s-projects.vercel.app',
+                 'https://crm-client-pyaw8lms8-bhavesh132s-projects.vercel.app'
+                ]
 
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:
@@ -107,6 +113,9 @@ CORS_ALLOW_HEADERS = [
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173',
+    'https://crm-client-eight.vercel.app',
+    'https://crm-client-git-main-bhavesh132s-projects.vercel.app',
+    'https://crm-client-pyaw8lms8-bhavesh132s-projects.vercel.app',
 ]
 
 
