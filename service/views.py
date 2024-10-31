@@ -64,12 +64,16 @@ def ticket_list(request):
     List all Tickets in the Database
     """
     if request.method == "GET":
-        queryset = Ticket.objects.all()
+        queryset = Ticket.objects.select_related('modified_by', 'owner', 'ticket_type', 'ticket_subtype', 'created_by', 'customer_id').all()
         tickets = filter_and_order(queryset, request)
+        total_count = tickets.count()
         paginator = GlobalPagination()
         paginated_queryset = paginator.paginate_queryset(tickets, request)
         serializer = TicketSerializer(paginated_queryset, many=True)
-        return Response(serializer.data)
+        return Response({
+            'data': serializer.data,
+            'total_count': total_count
+            })
     
     elif request.method == "POST":
         serializer = TicketSerializer(data=request.data)
@@ -139,8 +143,8 @@ def note_list(request):
     List all Notes in the Database
     """
     if request.method == "GET":
-        queryset = Note.objects.filter(owner=request.user)
-        notes = filter_and_order(queryset=queryset)
+        queryset = Note.objects.select_related('owner').all()
+        notes = filter_and_order(queryset, request)
         paginator = GlobalPagination()
         paginated_query = paginator.paginate_queryset(notes, request)
         serializer = NoteSerializer(paginated_query, many=True)

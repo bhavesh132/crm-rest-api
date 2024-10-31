@@ -1,3 +1,5 @@
+from authentication.serializer import UserSerializer
+from customer.serializer import ContactSerializer
 from .models import *
 from rest_framework import serializers
 
@@ -20,11 +22,18 @@ class TaskSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class NoteSerializer(serializers.ModelSerializer):
+    owner = UserSerializer()
     class Meta:
         model = Note
         fields = '__all__'
 
 class TicketSerializer(serializers.ModelSerializer):
+    ticket_type = TypeSerializer()
+    ticket_subtype = SubTypeSerializer()
+    created_by = UserSerializer()
+    modified_by = UserSerializer()
+    owner = UserSerializer()
+    customer_id= ContactSerializer()
     class Meta:
         model = Ticket
         fields = '__all__'
