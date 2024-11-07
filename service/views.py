@@ -1,6 +1,13 @@
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.response import Response
+from rest_framework.views import APIView
+from .serializer import EmailSerializer
+from rest_framework import status
+from django.conf import settings
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from .models import *
 from .serializer import *
 from django.utils import timezone
@@ -272,3 +279,39 @@ def subtype_detail(request, uuid):
             serializer.save(updated_at=timezone.now(), modified_by=request.user)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+@api_view(['POST'])
+def send_email(request):
+    recipient_email = request.data.get('to')
+    subject = request.data.get('subject', 'No Subject')
+    body = request.data.get('body', '')
+
+    # Check required fields
+    if not recipient_email or not body:
+        return Response({"error": "Recipient email and body are required"}, status=400)
+
+    try:
+        # Set up the SMTP server connection
+        server = smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT)
+        server.starttls()  # Start TLS for security
+        server.login(settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD)
+
+        # Create the email
+        msg = MIMEMultipart('alternative')
+        msg['From'] = settings.DEFAULT_FROM_EMAIL  # Ensure this matches your Zoho email
+        msg['To'] = recipient_email
+        msg['Subject'] = subject
+
+        # Attach the HTML-formatted email body
+        html_body = MIMEText(body, 'html')  # This allows HTML content
+        msg.attach(html_body)
+
+        # Send the email
+        server.sendmail(settings.DEFAULT_FROM_EMAIL, recipient_email, msg.as_string())
+        server.quit()
+
+        return Response({"message": "Email sent successfully"}, status=200)
+
+    except smtplib.SMTPException as e:
+        return Response({"error": str(e)}, status=500)

@@ -178,72 +178,72 @@ def capture_old_instance(sender, instance, **kwargs):
         # If the instance is new, no old instance exists
         _old_instances[instance.pk] = None
 
-@receiver([post_save, post_delete])
-def create_audit_log(sender, instance, **kwargs):
-    # Skip logging for the AuditLog, LogEntry, and Token models
-    if sender in [AuditLog, LogEntry, Token, Session]:
-        return
+# @receiver([post_save, post_delete])
+# def create_audit_log(sender, instance, **kwargs):
+#     # Skip logging for the AuditLog, LogEntry, and Token models
+#     if sender in [AuditLog, LogEntry, Token, Session]:
+#         return
 
-    # Get the user (if exists)
-    user = None
-    if hasattr(instance, 'modified_by'):
-        user = instance.modified_by
+#     # Get the user (if exists)
+#     user = None
+#     if hasattr(instance, 'modified_by'):
+#         user = instance.modified_by
 
-    if sender == User:
-        request = kwargs.get('request', None)
-        if request and (request.path == 'auth/login/' or request.path == 'auth/logout/'):
-            return
+#     if sender == User:
+#         request = kwargs.get('request', None)
+#         if request and (request.path == 'auth/login/' or request.path == 'auth/logout/'):
+#             return
 
-    # Determine the action (created, updated, deleted)
-    if kwargs.get('signal') == post_delete:
-        action = 'Deleted'
-        changes = model_to_dict(instance)  # No changes captured for deletion
-    elif kwargs.get('created', False):
-        action = 'Created'
-        # Capture all fields on creation
-        changes = model_to_dict(instance)
-    else:
-        action = 'Updated'
-        changes = {}
-        try:
-            # Fetch the old instance from the database
-              # Fetch the old instance from the pre_save signal's dictionary
-            old_instance_dict = _old_instances.get(instance.pk)
+#     # Determine the action (created, updated, deleted)
+#     if kwargs.get('signal') == post_delete:
+#         action = 'Deleted'
+#         changes = model_to_dict(instance)  # No changes captured for deletion
+#     elif kwargs.get('created', False):
+#         action = 'Created'
+#         # Capture all fields on creation
+#         changes = model_to_dict(instance)
+#     else:
+#         action = 'Updated'
+#         changes = {}
+#         try:
+#             # Fetch the old instance from the database
+#               # Fetch the old instance from the pre_save signal's dictionary
+#             old_instance_dict = _old_instances.get(instance.pk)
 
-            if old_instance_dict:
-                new_instance_dict = model_to_dict(instance)
+#             if old_instance_dict:
+#                 new_instance_dict = model_to_dict(instance)
 
-                # Compare the old and new instance field values
-                for field, old_value in old_instance_dict.items():
-                    new_value = new_instance_dict.get(field)
-                    if old_value != new_value:
-                        if field == "last_login":
-                            return
-                        changes[field] = {'old': old_value, 'new': new_value}
+#                 # Compare the old and new instance field values
+#                 for field, old_value in old_instance_dict.items():
+#                     new_value = new_instance_dict.get(field)
+#                     if old_value != new_value:
+#                         if field == "last_login":
+#                             return
+#                         changes[field] = {'old': old_value, 'new': new_value}
         
-        except sender.DoesNotExist:
-                # Handle the case where the old instance does not exist
-            changes = model_to_dict(instance)
+#         except sender.DoesNotExist:
+#                 # Handle the case where the old instance does not exist
+#             changes = model_to_dict(instance)
 
-    # Clean up fields like _state from changes (unnecessary in logs)
+#     # Clean up fields like _state from changes (unnecessary in logs)
 
-    # Convert changes to JSON serializable format
-    serializable_changes = convert_to_serializable(changes)
+#     # Convert changes to JSON serializable format
+#     serializable_changes = convert_to_serializable(changes)
 
-    app_label = sender._meta.app_label
-    # Create a new audit log entry
-    AuditLog.objects.create(
-        model_name=sender.__name__,
-        action=action,
-        object_id=instance.pk,
-        app_label=app_label,
-        changes=json.dumps(serializable_changes, indent=4),  # Store changes as JSON
-        timestamp=timezone.now(),
-        user=user  # Log the user making the change
-    )
-# Disconnect the signal for the AuditLog model
-post_save.disconnect(create_audit_log, sender=AuditLog)
-post_delete.disconnect(create_audit_log, sender=AuditLog)
+#     app_label = sender._meta.app_label
+#     # Create a new audit log entry
+#     AuditLog.objects.create(
+#         model_name=sender.__name__,
+#         action=action,
+#         object_id=instance.pk,
+#         app_label=app_label,
+#         changes=json.dumps(serializable_changes, indent=4),  # Store changes as JSON
+#         timestamp=timezone.now(),
+#         user=user  # Log the user making the change
+#     )
+# # Disconnect the signal for the AuditLog model
+# post_save.disconnect(create_audit_log, sender=AuditLog)
+# post_delete.disconnect(create_audit_log, sender=AuditLog)
 
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])

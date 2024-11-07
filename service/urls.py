@@ -14,4 +14,5 @@ urlpatterns = [
     path('task/<uuid:uuid>/', task_detail),
     path('my_task/<uuid:uuid>/', my_tasks),
     path('my_tickets/', my_tickets),
+    path('send-email/', send_email, name='send_email'),
 ]

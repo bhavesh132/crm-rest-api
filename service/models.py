@@ -52,16 +52,24 @@ class Ticket(BaseModel):
         return self.title
 
 class Note(BaseModel):
+    NOTE_TYPES = [
+        ('internal', 'Internal'),
+        ('discussion', 'Discussion'),
+        ('resolution', 'Resolution'),
+        ('email', 'Email'),
+    ]
+    
     body = models.TextField()
-    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE)
+    ticket = models.ForeignKey('Ticket', on_delete=models.CASCADE)
     content_type = models.ForeignKey(ContentType, on_delete=models.SET_NULL, null=True, blank=True)
     object_id = models.PositiveIntegerField(null=True, blank=True)
     related_object = GenericForeignKey('content_type', 'object_id')
-
-
-    def __str__(self):
-        return self.body
+    note_type = models.CharField(max_length=50, choices=NOTE_TYPES, default='internal')
+    to = models.EmailField(blank=True, null=True)
+    subject = models.CharField(max_length=255, blank=True, null=True)
     
+    def __str__(self):
+        return self.body[:30]
 
 class Task(BaseModel):
     SUBJECT = {
@@ -74,6 +82,7 @@ class Task(BaseModel):
     STATUS = {
         'completed': 'Completed',
         'in-progress': 'In Progress',
+        'scheduled' : 'Scheduled',
         'new' : 'New',
         'cancelled': 'Cancelled'
     }
