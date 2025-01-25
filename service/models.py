@@ -100,11 +100,9 @@ class Task(BaseModel):
     start_date = models.DateTimeField(default=timezone.now)
     due_date = models.DateTimeField(default=timezone.now)
     contact_name = models.ForeignKey(Contact, null=True, on_delete=models.SET_NULL)
-
     content_type = models.ForeignKey(ContentType, on_delete=models.SET_NULL, null=True, blank=True)
     object_id = models.PositiveIntegerField(null=True, blank=True)
     related_object = GenericForeignKey('content_type', 'object_id')
-
     comments = models.TextField(null=True)
 
     def __str__(self):

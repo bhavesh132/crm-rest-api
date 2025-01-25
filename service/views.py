@@ -122,7 +122,7 @@ def my_tasks(request):
 @permission_classes([IsAuthenticated])
 def ticket_detail(request, uuid):
     try: 
-        ticket = Ticket.objects.get(id=uuid)
+        ticket = Ticket.objects.select_related('modified_by', 'owner', 'ticket_type', 'ticket_subtype', 'created_by', 'customer_id').get(id=uuid)
     except Ticket.DoesNotExist:
         return Response({"message": "No ticket found"}, status=status.HTTP_404_NOT_FOUND)
 

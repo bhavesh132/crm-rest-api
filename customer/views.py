@@ -22,7 +22,7 @@ def contact_list(request):
         total_count = contacts.count()
         paginator = GlobalPagination()
         paginated_queryset = paginator.paginate_queryset(contacts, request)
-        serializer = ContactSerializer(paginated_queryset, many=True)
+        serializer = ContactSerializerGet(paginated_queryset, many=True)
         return Response({
             'data': serializer.data,
             'total_count': total_count
@@ -30,7 +30,7 @@ def contact_list(request):
     
     elif request.method == "POST":
         data = request.data
-        serializer = ContactSerializer(data=data)
+        serializer = ContactSerializerGet(data=data)
         print(request.data)
         if serializer.is_valid():
             serializer.save(owner=request.user)
@@ -43,16 +43,16 @@ def contact_list(request):
 @permission_classes([IsAuthenticated])
 def contact_detail(request, uuid):
     try: 
-        contact = Contact.objects.get(id=uuid)
+        contact = Contact.objects.select_related('owner').get(id=uuid)
     except Contact.DoesNotExist:
         return HttpResponse(status=404)
 
     if request.method == "GET":
-        serializer = ContactSerializer(contact)
+        serializer = ContactSerializerGet(contact)
         return Response(serializer.data)
     
     elif request.method == "PUT":
-        serializer = ContactSerializer(contact, data=request.data)
+        serializer = ContactSerializerPut(contact, data=request.data)
         if serializer.is_valid():
             serializer.save(updated_at=timezone.now(), modified_by=request.user)
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -68,7 +68,7 @@ def contact_detail(request, uuid):
 @permission_classes([IsAuthenticated])
 def company_list(request):
     if request.method == "GET":
-        queryset = Contact.objects.all()
+        queryset = Company.objects.all()
         companies = filter_and_order(queryset, request)
         paginator = GlobalPagination()
         paginated_queryset = paginator.paginate_queryset(companies, request)

@@ -1,5 +1,5 @@
 from authentication.serializer import UserSerializer
-from customer.serializer import ContactSerializer
+from customer.serializer import *
 from .models import *
 from rest_framework import serializers
 
@@ -33,7 +33,7 @@ class TicketSerializer(serializers.ModelSerializer):
     created_by = UserSerializer()
     modified_by = UserSerializer()
     owner = UserSerializer()
-    customer_id= ContactSerializer()
+    customer_id= ContactSerializerGet()
     class Meta:
         model = Ticket
         fields = '__all__'

@@ -33,7 +33,8 @@ DEBUG = 'RENDER' not in os.environ
 
 AUTH_USER_MODEL = 'authentication.User'
 
-ALLOWED_HOSTS = ['127.0.0.1', 
+ALLOWED_HOSTS = ['127.0.0.1',
+                 'localhost:8000',
                  'https://crm-rest-api.onrender.com', 
                  'http://localhost:5173',
                  'https://crm-client-eight.vercel.app',
@@ -145,9 +146,9 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 50,  # Set the default number of items per page
-    'PAGE_SIZE_QUERY_PARAM': 'page_size',  # Allow clients to set page size with this query parameter
-    'MAX_PAGE_SIZE': 200,  # Set a maximum page size
+    'PAGE_SIZE': 50,  
+    'PAGE_SIZE_QUERY_PARAM': 'page_size',
+    'MAX_PAGE_SIZE': 200,
 }
 
 

@@ -80,6 +80,17 @@ def user_login(request):
         return Response({'error': 'Invalid Credentials'}, status=401)
 
 
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def users(request):
+    if request.method == "GET":
+        queryset = User.objects.all()
+        serializer = UserSerializer(queryset, many=True)
+        return Response({
+            'data': serializer.data
+            })
+
 @api_view(['POST'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])

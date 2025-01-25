@@ -17,7 +17,7 @@ class Contact(BaseModel):
     company_name = models.TextField(default='catchall', max_length=100)
     contact_type = models.CharField(max_length=50, choices=CONTACT_TYPE)
     email = models.EmailField(unique=True)
-    contact_number = models.CharField(max_length=100, unique=True)
+    contact_number = models.CharField(max_length=100)
 
     def __str__(self):
         return self.first_name + " " + self.last_name

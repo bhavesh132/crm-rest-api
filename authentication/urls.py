@@ -6,6 +6,7 @@ urlpatterns = [
     path('login/', user_login, name='login'),
     path('logout/', user_logout, name='logout'),
     path('user_detail/<uuid:uuid>', user_view, name='user_detail'),
+    path('users/', users, name='users'),
     path('groups/', GroupCreateView.as_view(), name='group-list-create'),
     path('groups/<int:pk>/', GroupDetailView.as_view(), name='group-detail'),
     path('permissions/', PermissionListView.as_view(), name='permission-list'),
