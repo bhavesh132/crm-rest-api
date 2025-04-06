@@ -30,10 +30,9 @@ def contact_list(request):
     
     elif request.method == "POST":
         data = request.data
-        serializer = ContactSerializerGet(data=data)
-        print(request.data)
+        serializer = ContactSerializerPut(data=data, context={'request': request})
         if serializer.is_valid():
-            serializer.save(owner=request.user)
+            serializer.save(modified_by=request.user)
             return Response(serializer.data, status=201)
         return Response(serializer.errors, status=400)
     
@@ -68,12 +67,16 @@ def contact_detail(request, uuid):
 @permission_classes([IsAuthenticated])
 def company_list(request):
     if request.method == "GET":
-        queryset = Company.objects.all()
+        queryset = Company.objects.select_related('modified_by', 'owner', 'contact').all()
         companies = filter_and_order(queryset, request)
         paginator = GlobalPagination()
         paginated_queryset = paginator.paginate_queryset(companies, request)
         serializer = CompanySerializer(paginated_queryset, many=True)
-        return Response(serializer.data)
+        total_count = companies.count()
+        return Response({
+            'data': serializer.data,
+            'total_count': total_count
+            })
     
     elif request.method == "POST":
         data = request.data

@@ -1,22 +1,31 @@
 from dataclasses import fields
 from .models import Contact, Company
+from authentication.models import User
 from rest_framework import serializers
 from authentication.serializer import UserSerializer
 
-class ContactSerializerGet(serializers.ModelSerializer):
+class ContactSerializerPut(serializers.ModelSerializer):
     full_name = serializers.ReadOnlyField()
-    owner = UserSerializer()
+    owner = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=False)  # Allow updating
+
     class Meta:
         model = Contact
         fields = '__all__'
-        # fields = ['id', 'first_name', 'last_name','full_name', 'title', 'company_name', "owner", 'contact_type', 'email', 'contact_number', 'created_at', 'updated_at', 'num_id']
 
-class ContactSerializerPut(serializers.ModelSerializer):
+    def create(self, validated_data):
+        validated_data['owner'] = self.context['request'].user  # Auto-assign on POST
+        return super().create(validated_data)
+
+
+class ContactSerializerGet(serializers.ModelSerializer):
+    owner = UserSerializer()
     class Meta:
         model = Contact
         fields = '__all__'
 
 class CompanySerializer(serializers.ModelSerializer):
+    owner = UserSerializer()
+    contact = ContactSerializerGet()
     class Meta:
         model = Company
         fields = '__all__'
